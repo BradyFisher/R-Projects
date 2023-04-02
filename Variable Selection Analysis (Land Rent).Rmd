@@ -1,0 +1,78 @@
+---
+title: "Agricultural Land Rent Project"
+author: "Brady Fisher"
+output: pdf_document
+subtitle: "Variable Selection Analysis"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r, include=FALSE}
+library(alr4)
+library(MASS)
+```
+
+#Land Rent Problem:
+### It is thought that rent for land planted to alfalfa relative to rent for other agricultural purposes would be higher in areas with a high density of dairy cows and rents would be lower in counties where liming is required, since that would mean additional expense. Explore this data with regard to understanding rent structure. Summarize your results.
+
+To see how the rent for land planted to alfalfa relative to rent for other agricultural purposes changes with high dairy cow density and the liming requirement, I will use Y as the response variable, where Y is the average land rent per acre planted to alfalfa. I will use the given explanatory variables X1(average rent paid for all tillable land), X2 (density of dairy cows), X3 (proportion of farmland used as pasture), and X4 (1 if liming is required, 0 otherwise).
+```{r}
+data = data.frame(Y=landrent$Y,X1=landrent$X1,X2=landrent$X2,X3=landrent$X3,X4=landrent$X4)
+head(data)
+```
+
+Now I will create a scatter plot matrix to see how each explanatory variable relates to the response variable average rent per acre Y planted to alfalfa.
+```{r}
+pairs(data)
+```
+From the scatter plot and problem description I can see that the variable X4 should be treated as a factor of 2 levels. I can also see from the scatter plot that the other predictors are relatively related to the response variable. Some of the relationships appear to be somewhat curved, specifically Y's relationship with X3 so I will test to see if  transformations on any of the variables will help produce a better model.
+
+Now I will take a look at the potential model without any transformations to confirm transformations will potentially be helpful.
+```{r}
+m1 = lm(Y ~ X1+X2+X3+as.factor(X4), data=data)
+summary(m1)
+```
+
+This output shows that the variables X1(average rent paid for all tillable land), and X2(density of dairy cows) are the only significant variables without any transformations. I can say this since the p-values less than 0.05 for these variables.
+
+I will now find the best transformations for the non-binary explanatory variables using the powerTransform method. 
+```{r}
+m2 = powerTransform(object=cbind(data$X1, data$X2, data$X3))
+summary(m2)
+```
+This output shows that I should transform X2 and X3 by taking their log, since their estimated powers are close to 0. I should leave X1 since its estimated power is close to 1.
+
+So my new potential full model will be as follows denoted m3. I will then run the inverseReponsePlot and the boxcox methods to see if the variable Y needs to be transformed.
+```{r}
+m3 = lm(data$Y ~ data$X1 + log(data$X2) + log(data$X3) + as.factor(data$X4))
+inverseResponsePlot(m3)
+boxcox(m3)
+```
+
+From both graphs I can see that for Y, raising it to the 1/2 would be the best transformation and may produce the better model.
+
+Now my new model is:
+```{r}
+m4 = lm((data$Y ^.5)~  data$X1 + log(data$X2) + log(data$X3) + as.factor(data$X4))
+```
+
+I will now check the model with a Residuals vs Fitted plot and a normal QQ Plot to check that all the appropriate assumptions are met.
+```{r}
+plot(m4)
+```
+From the Residuals vs. Fitted plot I can see that the model is approximately linear as the points appear to be randomly scattered around residuals of 0 with no clear pattern.
+
+Also I can see that there is approximately equal variance as the spread of the points do not appear to change too much. There does appear to be one point that sticks out more than the rest, that being point 67, but from the Residuals vs Leverage Plot I can see that it falls below the 0.5 line, meaning it is not too influential. 
+
+From the QQ Plot I can see that the data is not exactly normal, but that should not matter too much because the data has a large sample size making the model resistant in the Normality assumption. 
+
+Lastly I will assume the data was taken so that they are independent of each other, thus satisfying the independence assumption.
+
+Finally, I will view the summary of the model to see which explanatory variables appear to be significant in predicting the response.
+```{r}
+summary(m4)
+```
+
+From the summary I can see that the X1(average rent paid for all tillable land) and X2 (the density of dairy cows) variables are significant with pvalues less than 0.05. This means that I have evidence to believe the density of dairy cows and average rent paid for all tillable land is significant in predicting the rent for land planted to alfalfa relative to rent for other agricultural purposes. Also this means I have no evidence to believe whether or not liming is required nor the amount of pasture has any effect on the land rent.
