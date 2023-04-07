@@ -23,4 +23,4 @@ These explanatory variables are location the film is from, the year of the film,
 
 **Variable Selection Analysis (Land Rent):**<br />
 In this Project I use **Variable Selection Analysis** to determine how the rent for land planted to alfalfa relative to rent for other agricultural purposes changes with some variables.
-These explanatory variables are the average rent paid for all tillable land in the area, the density of dairy cows, the proportion of farmland used as pasture, and a farming technique know as liming is required.
+These explanatory variables are the average rent paid for all tillable land in the area, the density of dairy cows, the proportion of farmland used as pasture, and a farming technique know as liming is required. 
